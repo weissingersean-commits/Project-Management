@@ -1,0 +1,935 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>:root {
+  --bg:#EDECEA;--card:#fff;--ink:#111;--ink2:#555;--ink3:#888;--ink4:#bbb;--line:#E0DFDB;
+  --accent:#E8A838;--danger:#DC2626;--warn:#D97706;--info:#3B82F6;--ok:#059669;
+  --blue:#5B8DEF;--purple:#7B68EE;--orange:#D97B2A;--r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.fi{animation:fadeIn .2s ease}
+.inp{width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:7px;font-size:14px;outline:none;background:#FAFAF8;box-sizing:border-box}
+.inp:focus{border-color:var(--blue)}
+.lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--ink3);margin-bottom:3px;display:block}
+.req::after{content:" *";color:var(--danger)}
+.btn-sm{padding:5px 12px;border:none;border-radius:7px;font-size:12px;font-weight:700}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-ghost{background:#EFEEEA;color:var(--ink2)}
+.btn-outline{background:#fff;border:1px solid var(--line);color:#666}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.full{grid-column:1/-1}
+.section-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--ink3);margin:14px 0 6px;display:flex;align-items:center;gap:6px}
+.section-lbl .cnt{background:var(--line);border-radius:10px;padding:1px 7px;font-size:9px;color:var(--ink2)}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.hdr{background:var(--ink);color:#fff;padding:18px 20px 14px}
+.hdr h1{font-size:22px;font-weight:900;letter-spacing:-.5px}
+.hdr-sub{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#666;margin-bottom:2px}
+.hdr-row{display:flex;justify-content:space-between;align-items:center}
+.btn-add{padding:9px 18px;background:var(--accent);color:var(--ink);border:none;border-radius:9px;font-size:13px;font-weight:800}
+.stats{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.stat-v{font-size:24px;font-weight:900}
+.stat-l{font-size:9px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.5px}
+.nav{display:flex;margin-top:12px;gap:2px;flex-wrap:wrap}
+.nav button{padding:7px 14px;border:none;border-radius:7px;font-size:12px;font-weight:700;background:transparent;color:#666;transition:background .1s,color .1s}
+.nav button.on{background:rgba(255,255,255,.12);color:#fff}
+.nav button:hover:not(.on){background:rgba(255,255,255,.06);color:#aaa}
+.alert-bar{margin:10px 16px 0;padding:9px 12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;font-weight:700;color:var(--danger)}
+.sbar{padding:10px 16px 0}
+.sbar input{width:100%;padding:9px 14px;border:1px solid var(--line);border-radius:9px;font-size:14px;outline:none;background:#fff}
+.filts{padding:8px 16px;display:flex;gap:5px;overflow-x:auto}
+.fbtn{padding:4px 12px;border-radius:20px;border:none;font-size:11px;font-weight:700;flex-shrink:0;background:#E5E5E0;color:#888}
+.fbtn.on{background:var(--ink);color:#fff}
+.jlist{padding:0 16px;display:grid;gap:8px}
+.jc{background:var(--card);border-radius:var(--r);overflow:hidden;transition:all .15s}
+.jc-head{padding:12px 14px;cursor:pointer}
+.jc-name{font-size:15px;font-weight:800}
+.jc-meta{font-size:12px;color:var(--ink3);margin-top:2px}
+.jc-badges{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+.jc-counts{font-size:11px;color:var(--ink4);margin-top:4px}
+.jc-body{padding:0 14px 14px;border-top:1px solid #F3F3F0}
+.jc-notes{font-size:13px;color:var(--ink2);line-height:1.5;margin:10px 0;padding:10px;background:#F8F8F6;border-radius:7px;white-space:pre-wrap}
+.ph-row{display:flex;gap:4px;flex-wrap:wrap;margin:10px 0}
+.ph-btn{padding:4px 9px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid var(--line);background:#fff;color:#bbb}
+.tabs{display:flex;border-bottom:2px solid var(--line);margin-top:4px}
+.tab{padding:7px 14px;border:none;border-bottom:2px solid transparent;background:none;font-size:12px;font-weight:700;color:#bbb;margin-bottom:-2px}
+.tab.on{border-bottom-color:var(--ink);color:var(--ink)}
+.ck{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F3F3F0}
+.ck input[type=checkbox]{width:16px;height:16px;accent-color:var(--ok);cursor:pointer}
+.ck-t{flex:1;font-size:13px}
+.ck-t.done{color:#aaa;text-decoration:line-through}
+.ck-x{background:none;border:none;color:var(--ink4);font-size:15px;cursor:pointer}
+.pr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F3F3F0}
+.pr-sel{padding:2px 4px;border:1px solid var(--line);border-radius:5px;font-size:10px;font-weight:700;cursor:pointer}
+.dr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F3F3F0}
+.dr-dot{width:6px;height:6px;border-radius:3px;flex-shrink:0}
+.iform{margin-top:8px;padding:12px;background:#F8F8F6;border:1px solid var(--line);border-radius:8px}
+.iform-acts{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.mo-box{background:#fff;border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow:auto;padding:24px;box-shadow:0 20px 40px rgba(0,0,0,.2)}
+.mo-box h2{font-size:18px;font-weight:800}
+.mo-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.mo-x{background:none;border:none;font-size:22px;color:#999}
+.mo-foot{display:flex;gap:10px;margin-top:18px}
+.mo-foot button{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:600}
+.empty{text-align:center;padding:44px 20px;color:#bbb}
+.empty-i{font-size:32px;margin-bottom:8px}
+.empty-t{font-size:15px;font-weight:700}
+.ph-tag{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px}
+.acts-row{display:flex;gap:8px;margin-top:14px}
+.acts-row button{padding:8px;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer}
+.mat-s{margin-bottom:14px}
+.mat-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.mat-c{background:#fff;border-radius:7px;padding:9px 12px;margin-bottom:5px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>const PHASES=[
+  {id:"design",label:"Design",color:"#5B8DEF"},
+  {id:"procurement",label:"Procurement",color:"#E8A838"},
+  {id:"build",label:"Build / Assembly",color:"#D97B2A"},
+  {id:"install",label:"Install",color:"#7B68EE"},
+  {id:"test",label:"Test / Commission",color:"#10B981"},
+  {id:"complete",label:"Complete",color:"#059669"},
+];
+
+const PHASE_CHECKLISTS={
+  design:[
+    "Receive and review alarm point list from client",
+    "Get engine / machinery specs and manuals",
+    "Identify sensor types and ranges needed",
+    "Create General Arrangement (GA) drawing",
+    "Create wiring diagram / schematics",
+    "Submit drawings for client / class approval",
+    "Revise drawings per feedback",
+    "Final drawing approval received",
+  ],
+  procurement:[
+    "Generate Bill of Materials (BOM) from approved design",
+    "Request quotes from suppliers",
+    "Issue Purchase Orders",
+    "Confirm lead times with suppliers",
+    "Track shipments - sensors",
+    "Track shipments - panel components",
+    "Track shipments - wire / cable",
+    "Track shipments - misc hardware",
+    "Receive and inspect all materials",
+    "Report any damaged or incorrect items",
+  ],
+  build:[
+    "Panel layout and component mounting",
+    "Wire panel internals per schematic",
+    "Label all wiring and terminals",
+    "Program alarm controller / PLC",
+    "Bench test - verify each alarm channel",
+    "Bench test - verify outputs (horn, lights, shutdown)",
+    "QC inspection of completed panel",
+    "Prepare panel for shipping / transport",
+  ],
+  install:[
+    "Coordinate vessel availability / dock schedule",
+    "Mobilize tools and crew to vessel",
+    "Mount alarm panel in engine room / wheelhouse",
+    "Run cable and conduit to sensor locations",
+    "Install sensors at machinery",
+    "Terminate wiring at panel and sensors",
+    "Label all field wiring",
+    "Verify power supply connections",
+  ],
+  test:[
+    "Power up system - check for faults",
+    "Simulate each alarm point - verify annunciation",
+    "Test horn silence / acknowledge functions",
+    "Test lamp test function",
+    "Verify shutdown circuits if applicable",
+    "Test wheelhouse remote / repeater panel",
+    "Demonstrate system to chief engineer / captain",
+    "Complete test report and sign-off sheet",
+    "Submit documentation to class society if required",
+    "Punch list items - address any deficiencies",
+  ],
+  complete:[
+    "Deliver final as-built drawings to client",
+    "Deliver operation and maintenance manual",
+    "Submit final invoice",
+    "Collect payment",
+    "Archive job files",
+  ],
+};
+
+const PART_STATUSES=[
+  {id:"needed",label:"Needed",color:"#DC2626",dot:"\u{1F534}"},
+  {id:"ordered",label:"Ordered",color:"#D97706",dot:"\u{1F7E1}"},
+  {id:"shipped",label:"Shipped",color:"#3B82F6",dot:"\u{1F535}"},
+  {id:"received",label:"Received",color:"#059669",dot:"\u{1F7E2}"},
+];
+
+const DOC_STATUSES=[
+  {id:"pending",label:"Pending",color:"#D97706"},
+  {id:"in_progress",label:"In Progress",color:"#3B82F6"},
+  {id:"submitted",label:"Submitted",color:"#7B68EE"},
+  {id:"approved",label:"Approved",color:"#059669"},
+  {id:"rejected",label:"Rejected",color:"#DC2626"},
+];
+
+const DOC_TYPES=["GA Drawing","Wiring Diagram","Spec Sheet","Bill of Materials","Approval Letter","Class Certificate","Test Report","Punch List","Photo / As-Built","Invoice","Purchase Order","Other"];
+const VESSEL_TYPES=["Tugboat","Towboat","Push Boat","Barge","Crew Boat","Supply Vessel (OSV)","Ferry","Tanker","Cargo / Freighter","Dredge","Workboat","Yacht","Military","Other"];
+
+const UC={
+  overdue:{c:"#DC2626",bg:"#FEF2F2",br:"#FECACA"},
+  hot:{c:"#B45309",bg:"#FFFBEB",br:"#FDE68A"},
+  soon:{c:"#1D4ED8",bg:"#EFF6FF",br:"#BFDBFE"},
+  ok:{c:"#6B7280",bg:"transparent",br:"transparent"},
+  done:{c:"#059669",bg:"#F0FDF4",br:"#BBF7D0"},
+  none:{c:"#9CA3AF",bg:"transparent",br:"transparent"},
+};
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+function dL(d){if(!d)return null;const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(d+"T00:00:00")-n)/864e5)}
+function urg(due,ph){if(ph==="complete")return"done";const d=dL(due);if(d===null)return"none";if(d<0)return"overdue";if(d<=3)return"hot";if(d<=7)return"soon";return"ok"}
+function urgLbl(due,ph){if(ph==="complete")return"Done";const d=dL(due);if(d===null)return"";if(d<0)return Math.abs(d)+"d overdue";if(d===0)return"Today";return d+"d"}
+
+function h(t,a,...c){
+  const e=document.createElement(t);
+  if(a)for(const[k,v]of Object.entries(a)){
+    if(k==="style"&&typeof v==="object")Object.assign(e.style,v);
+    else if(k.startsWith("on"))e.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(k==="className")e.className=v;
+    else if(k==="checked")e.checked=v;
+    else if(k==="selected")e.selected=v;
+    else if(k==="value")e.value=v;
+    else e.setAttribute(k,v);
+  }
+  for(const x of c){
+    if(x==null||x===false)continue;
+    if(typeof x==="string"||typeof x==="number")e.appendChild(document.createTextNode(x));
+    else if(Array.isArray(x))x.forEach(z=>{if(z)e.appendChild(z)});
+    else e.appendChild(x);
+  }
+  return e;
+}
+
+const STORE="mas-pm-v1";
+const STORE_OLD="mas-jm-v6";
+
+function defaultSettings(){
+  return{
+    company:{name:"Marine Alarm Systems",address:"",phone:"",email:""},
+    numbering:{quotePrefix:"Q",quoteNext:1,poPrefix:"PO",poNext:1,invPrefix:"INV",invNext:1},
+    tax:{rate:0,label:"Tax"},
+    currency:"USD",
+  };
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORE);
+    if(raw)return JSON.parse(raw);
+    // migrate from v6
+    const old=localStorage.getItem(STORE_OLD);
+    if(old){
+      const jobs=JSON.parse(old)||[];
+      const st={jobs,contacts:[],settings:defaultSettings()};
+      localStorage.setItem(STORE,JSON.stringify(st));
+      return st;
+    }
+    return{jobs:[],contacts:[],settings:defaultSettings()};
+  }catch{return{jobs:[],contacts:[],settings:defaultSettings()};}
+}
+
+function saveState(data){
+  localStorage.setItem(STORE,JSON.stringify(data));
+}
+
+const _loaded=loadState();
+
+let S={
+  jobs:_loaded.jobs||[],
+  contacts:_loaded.contacts||[],
+  settings:Object.assign(defaultSettings(),_loaded.settings||{}),
+  // ui state (not persisted)
+  view:"dashboard",
+  editing:null,
+  filter:"all",
+  search:"",
+  expanded:{},
+  tabs:{},
+  addingPart:{},
+  editingPart:{},
+  partForms:{},
+  addingDoc:{},
+  docForms:{},
+};
+
+function set(p){Object.assign(S,p);render()}
+function persist(){saveState({jobs:S.jobs,contacts:S.contacts,settings:S.settings});render()}
+function updJob(id,p){S.jobs=S.jobs.map(j=>j.id===id?{...j,...p}:j);persist()}
+function delJob(id){S.jobs=S.jobs.filter(j=>j.id!==id);delete S.expanded[id];persist()}
+
+function renderHeader(){
+  const{jobs,view}=S;
+  const active=jobs.filter(j=>j.phase!=="complete");
+  const overdue=active.filter(j=>urg(j.due,j.phase)==="overdue");
+  const allP=jobs.flatMap(j=>(j.parts||[]));
+  const pN=allP.filter(p=>p.status==="needed");
+  const pL=allP.filter(p=>p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&dL(p.etaDate)<0);
+
+  const nav=[
+    ["dashboard","Dashboard"],
+    ["jobs","Jobs"],
+    ["materials","Materials"],
+    ["settings","Settings"],
+  ];
+
+  return h("div",{className:"hdr"},
+    h("div",{className:"hdr-row"},
+      h("div",null,
+        h("div",{className:"hdr-sub"},S.settings.company.name||"Marine Alarm Systems"),
+        h("h1",null,"Job Manager"),
+      ),
+      view!=="settings"?h("button",{className:"btn-add",onClick:()=>set({editing:{},view:"jobs"})},"+ New Job"):null,
+    ),
+    h("div",{className:"stats"},
+      ...[
+        {l:"Active",v:active.length,c:"#5B8DEF"},
+        {l:"Overdue",v:overdue.length,c:overdue.length?"#EF4444":"#555"},
+        {l:"Parts Needed",v:pN.length,c:pN.length?"#E8A838":"#555"},
+        {l:"Parts Late",v:pL.length,c:pL.length?"#EF4444":"#555"},
+      ].map(s=>h("div",null,
+        h("div",{className:"stat-v",style:{color:s.c}},""+s.v),
+        h("div",{className:"stat-l"},s.l),
+      )),
+    ),
+    h("div",{className:"nav"},
+      ...nav.map(([id,l])=>h("button",{className:view===id?"on":"",onClick:()=>set({view:id})},l)),
+    ),
+  );
+}
+
+function renderModal(){
+  if(!S.editing)return null;
+  const j=S.editing;const isE=!!j.id;
+  const ov=h("div",{className:"mo",onClick:e=>{if(e.target===ov)set({editing:null})}});
+  const box=h("div",{className:"mo-box fi"});
+  box.appendChild(h("div",{className:"mo-hdr"},h("h2",null,isE?"Edit Job":"New Job"),h("button",{className:"mo-x",onClick:()=>set({editing:null})},"×")));
+  const frm=h("div",{style:{display:"grid",gap:"10px"}});
+
+  frm.appendChild(h("div",{className:"section-lbl"},"⚓ Vessel & Client"));
+  let r=h("div",{className:"grid2"});
+  r.appendChild(mkF("Vessel Name","vesselName",j,"M/V Gulf Runner",true));
+  r.appendChild(mkSel("Vessel Type","vesselType",j,VESSEL_TYPES.map(v=>({v,l:v})),j.vesselType||"Tugboat"));
+  frm.appendChild(r);
+  r=h("div",{className:"grid2"});
+  r.appendChild(mkF("Client / Company","client",j,"",true));
+  r.appendChild(mkF("IMO / Hull #","imo",j,""));
+  frm.appendChild(r);
+
+  frm.appendChild(h("div",{className:"section-lbl"},"📋 Job Details"));
+  frm.appendChild(mkF("Job / Project Name","name",j,"e.g. Engine Room Alarm Panel Replacement",true));
+  const sw=h("div",null);sw.appendChild(h("label",{className:"lbl req"},"Scope of Work"));
+  sw.appendChild(h("textarea",{className:"inp",rows:"3",style:{resize:"vertical"},value:j.scope||"",placeholder:"Describe the work: number of alarm points, new install vs retrofit, any special requirements (class society, shutdown circuits, remote panels)...",onInput:e=>{S.editing={...S.editing,scope:e.target.value}}}));
+  frm.appendChild(sw);
+  r=h("div",{className:"grid2"});
+  r.appendChild(mkF("PO / Contract #","poNumber",j,""));
+  r.appendChild(mkF("Alarm Point Count","alarmPoints",j,"e.g. 24",false,"number"));
+  frm.appendChild(r);
+  r=h("div",{className:"grid2"});
+  r.appendChild(mkF("Est. Value ($)","value",j,""));
+  r.appendChild(mkSel("Starting Phase","phase",j,PHASES.map(p=>({v:p.id,l:p.label})),j.phase||"design"));
+  frm.appendChild(r);
+
+  frm.appendChild(h("div",{className:"section-lbl"},"📅 Schedule"));
+  r=h("div",{className:"grid2"});
+  r.appendChild(mkF("Start Date","startDate",j,"",false,"date"));
+  r.appendChild(mkF("Due Date","due",j,"",true,"date"));
+  frm.appendChild(r);
+  r=h("div",{className:"grid2"});
+  r.appendChild(mkF("Dock Date","dockDate",j,"",false,"date"));
+  r.appendChild(mkF("Sea Trial Date","seaTrialDate",j,"",false,"date"));
+  frm.appendChild(r);
+
+  const nw=h("div",null);nw.appendChild(h("label",{className:"lbl"},"Additional Notes"));
+  nw.appendChild(h("textarea",{className:"inp",rows:"2",style:{resize:"vertical"},value:j.notes||"",placeholder:"Special instructions, contacts, location...",onInput:e=>{S.editing={...S.editing,notes:e.target.value}}}));
+  frm.appendChild(nw);
+
+  if(!isE)frm.appendChild(h("div",{style:{padding:"10px 12px",background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:"8px",fontSize:"12px",color:"#1D4ED8",fontWeight:"600",marginTop:"4px"}},"💡 A starter checklist will be loaded based on the starting phase. You can edit, add, or remove tasks after creating the job."));
+
+  box.appendChild(frm);
+  box.appendChild(h("div",{className:"mo-foot"},
+    h("button",{className:"btn-outline",onClick:()=>set({editing:null})},"Cancel"),
+    h("button",{className:"btn-dark",style:{fontWeight:"700",opacity:(j.name||"").trim()&&(j.vesselName||"").trim()?"1":"0.35"},onClick:()=>{
+      const f=S.editing;if(!(f.name||"").trim()||!(f.vesselName||"").trim())return;
+      if(f.id){S.jobs=S.jobs.map(j2=>j2.id===f.id?{...j2,...f}:j2)}
+      else{const ph=f.phase||"design";const st=(PHASE_CHECKLISTS[ph]||[]).map(t=>({text:t,done:false,id:uid(),phase:ph}));S.jobs.push({...f,id:uid(),tasks:st,parts:[],docs:[],createdAt:new Date().toISOString()})}
+      S.editing=null;persist();
+    }},isE?"Save Changes":"Create Job"),
+  ));
+  ov.appendChild(box);return ov;
+}
+
+function mkF(label,key,job,ph,req,type){
+  const w=h("div",null);w.appendChild(h("label",{className:"lbl"+(req?" req":"")},label));
+  w.appendChild(h("input",{className:"inp",type:type||"text",value:job[key]||"",placeholder:ph||"",onInput:e=>{S.editing={...S.editing,[key]:e.target.value}}}));return w;
+}
+
+function mkSel(label,key,job,opts,def){
+  const w=h("div",null);w.appendChild(h("label",{className:"lbl"},label));
+  const sel=h("select",{className:"inp",style:{cursor:"pointer"},onChange:e=>{S.editing={...S.editing,[key]:e.target.value}}});
+  opts.forEach(o=>{const op=h("option",{value:o.v},o.l);if((job[key]||def)===o.v)op.selected=true;sel.appendChild(op)});
+  w.appendChild(sel);return w;
+}
+
+function renderTasks(job){
+  const tasks=job.tasks||[];const container=h("div",null);
+  const grouped={};tasks.forEach((t,i)=>{const ph=t.phase||"other";if(!grouped[ph])grouped[ph]=[];grouped[ph].push({...t,idx:i})});
+  const order=[...PHASES.map(p=>p.id),"other"];
+  order.forEach(phId=>{
+    const items=grouped[phId];if(!items||!items.length)return;
+    const pD=PHASES.find(p=>p.id===phId);const dc=items.filter(t=>t.done).length;
+    container.appendChild(h("div",{className:"section-lbl"},h("span",{style:{color:pD?pD.color:"#888"}},pD?pD.label:"Other"),h("span",{className:"cnt"},dc+"/"+items.length)));
+    items.forEach(t=>{
+      container.appendChild(h("div",{className:"ck"},
+        h("input",{type:"checkbox",checked:t.done,onChange:()=>{const up=[...tasks];up[t.idx]={...tasks[t.idx],done:!t.done};updJob(job.id,{tasks:up})}}),
+        h("span",{className:"ck-t"+(t.done?" done":"")},t.text),
+        h("button",{className:"ck-x",onClick:()=>updJob(job.id,{tasks:tasks.filter((_,j)=>j!==t.idx)})},"×"),
+      ));
+    });
+  });
+  const addRow=h("div",{style:{display:"flex",gap:"6px",marginTop:"8px",alignItems:"center"}});
+  const phSel=h("select",{className:"inp",style:{width:"auto",minWidth:"100px",fontSize:"12px"}});
+  PHASES.filter(p=>p.id!=="complete").forEach(p=>{const o=h("option",{value:p.id},p.label);if(p.id===job.phase)o.selected=true;phSel.appendChild(o)});
+  phSel.appendChild(h("option",{value:"other"},"Other"));
+  const inp=h("input",{className:"inp",placeholder:"Add task...",style:{flex:"1"}});
+  const btn=h("button",{className:"btn-sm btn-dark",onClick:()=>{if(!inp.value.trim())return;updJob(job.id,{tasks:[...tasks,{text:inp.value.trim(),done:false,id:uid(),phase:phSel.value}]});inp.value=""}},"+");
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")btn.click()});
+  addRow.append(phSel,inp,btn);container.appendChild(addRow);
+
+  const missing=PHASES.filter(p=>p.id!=="complete"&&!(grouped[p.id]&&grouped[p.id].length>0));
+  if(missing.length>0){
+    container.appendChild(h("div",{style:{marginTop:"10px",display:"flex",gap:"4px",flexWrap:"wrap",alignItems:"center"}},
+      h("span",{style:{fontSize:"11px",color:"var(--ink3)"}},"Load checklist:"),
+      ...missing.map(p=>h("button",{className:"btn-sm",style:{background:p.color+"14",color:p.color,fontSize:"10px"},onClick:()=>{
+        const nt=(PHASE_CHECKLISTS[p.id]||[]).map(t=>({text:t,done:false,id:uid(),phase:p.id}));updJob(job.id,{tasks:[...tasks,...nt]});
+      }},p.label)),
+    ));
+  }
+  return container;
+}
+
+function renderParts(job){
+  const parts=job.parts||[];const jid=job.id;const container=h("div",null);
+  const late=parts.filter(p=>p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&dL(p.etaDate)<0);
+  if(late.length)container.appendChild(h("div",{style:{padding:"6px 10px",background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"7px",marginBottom:"8px",fontSize:"11px",fontWeight:"700",color:"var(--danger)"}},"⚠ "+late.length+" past ETA: "+late.map(p=>p.name).join(", ")));
+
+  const grouped={};parts.forEach((p,i)=>{const ph=p.phase||"general";if(!grouped[ph])grouped[ph]=[];grouped[ph].push({...p,idx:i})});
+  [...PHASES.map(p=>p.id),"general"].forEach(phId=>{
+    const items=grouped[phId];if(!items||!items.length)return;
+    const pD=PHASES.find(p=>p.id===phId);
+    container.appendChild(h("div",{className:"section-lbl"},h("span",{style:{color:pD?pD.color:"#888"}},pD?pD.label:"General")));
+    items.forEach(p=>{
+      const ps=PART_STATUSES.find(s=>s.id===p.status)||PART_STATUSES[0];
+      const eta=dL(p.etaDate);const isLate=p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&eta!==null&&eta<0;
+      container.appendChild(h("div",{className:"pr"},
+        h("span",{style:{fontSize:"12px"}},ps.dot),
+        h("div",{style:{flex:"1",minWidth:"0"}},
+          h("div",null,h("span",{style:{fontSize:"13px",fontWeight:"700",color:"var(--ink)"}},p.name+(p.qty>1?" ×"+p.qty:"")),p.partNumber?h("span",{style:{fontWeight:"400",color:"#aaa",marginLeft:"6px"}},"#"+p.partNumber):null),
+          h("div",{style:{fontSize:"11px",color:isLate?"var(--danger)":"#888",fontWeight:isLate?"700":"400"}},(p.supplier||"")+(p.etaDate?" · ETA "+p.etaDate+(isLate?" ("+Math.abs(eta)+"d late)":eta!==null?" ("+eta+"d)":""):"")+(p.tracking?" · 📍"+p.tracking:"")),
+        ),
+        (()=>{const sel=h("select",{className:"pr-sel",style:{color:ps.color},onChange:e=>{const up=[...parts];up[p.idx]={...parts[p.idx],status:e.target.value};updJob(jid,{parts:up})}});PART_STATUSES.forEach(s=>{const o=h("option",{value:s.id},s.label);if(s.id===p.status)o.selected=true;sel.appendChild(o)});return sel})(),
+        h("button",{style:{background:"none",border:"none",cursor:"pointer",fontSize:"12px",color:"#bbb"},onClick:()=>{S.editingPart[jid]=p.idx;S.partForms[jid]={...parts[p.idx]};S.addingPart[jid]=true;render()}},"✏️"),
+        h("button",{className:"ck-x",onClick:()=>updJob(jid,{parts:parts.filter((_,j)=>j!==p.idx)})},"×"),
+      ));
+    });
+  });
+
+  if(S.addingPart[jid]){
+    const f=S.partForms[jid]||{name:"",partNumber:"",supplier:"",qty:1,status:"needed",orderDate:"",etaDate:"",tracking:"",notes:"",phase:job.phase};
+    const isEdit=S.editingPart[jid]!==undefined&&S.editingPart[jid]!==null;
+    const sF=(k,v)=>{S.partForms[jid]={...(S.partForms[jid]||f),[k]:v}};
+    const form=h("div",{className:"iform fi"},
+      h("div",{className:"grid2"},
+        h("div",{className:"full"},h("label",{className:"lbl req"},"Part / Component"),h("input",{className:"inp",value:f.name,placeholder:"e.g. Low Oil Pressure Switch - Murphy ES2P",onInput:e=>sF("name",e.target.value)})),
+        h("div",null,h("label",{className:"lbl"},"Part #"),h("input",{className:"inp",value:f.partNumber,onInput:e=>sF("partNumber",e.target.value)})),
+        h("div",null,h("label",{className:"lbl"},"Qty"),h("input",{className:"inp",type:"number",min:"1",value:""+f.qty,onInput:e=>sF("qty",parseInt(e.target.value)||1)})),
+        h("div",null,h("label",{className:"lbl"},"Supplier"),h("input",{className:"inp",value:f.supplier,onInput:e=>sF("supplier",e.target.value)})),
+        h("div",null,h("label",{className:"lbl"},"For Phase"),(()=>{const sel=h("select",{className:"inp",onInput:e=>sF("phase",e.target.value)});PHASES.forEach(p=>{const o=h("option",{value:p.id},p.label);if((f.phase||job.phase)===p.id)o.selected=true;sel.appendChild(o)});sel.appendChild(h("option",{value:"general"},"General"));return sel})()),
+        h("div",null,h("label",{className:"lbl"},"Status"),(()=>{const sel=h("select",{className:"inp",onInput:e=>sF("status",e.target.value)});PART_STATUSES.forEach(s=>{const o=h("option",{value:s.id},s.label);if(s.id===f.status)o.selected=true;sel.appendChild(o)});return sel})()),
+        h("div",null,h("label",{className:"lbl"},"Order Date"),h("input",{className:"inp",type:"date",value:f.orderDate,onInput:e=>sF("orderDate",e.target.value)})),
+        h("div",null,h("label",{className:"lbl"},"ETA Date"),h("input",{className:"inp",type:"date",value:f.etaDate,onInput:e=>sF("etaDate",e.target.value)})),
+        h("div",{className:"full"},h("label",{className:"lbl"},"Tracking #"),h("input",{className:"inp",value:f.tracking,onInput:e=>sF("tracking",e.target.value)})),
+        h("div",{className:"full"},h("label",{className:"lbl"},"Notes"),h("input",{className:"inp",value:f.notes,placeholder:"Lead time, alternates, specs...",onInput:e=>sF("notes",e.target.value)})),
+      ),
+      h("div",{className:"iform-acts"},
+        h("button",{className:"btn-sm btn-outline",onClick:()=>{delete S.addingPart[jid];delete S.editingPart[jid];render()}},"Cancel"),
+        h("button",{className:"btn-sm btn-dark",style:{opacity:(S.partForms[jid]&&S.partForms[jid].name||"").trim()?"1":"0.35"},onClick:()=>{
+          const fd=S.partForms[jid];if(!fd||!fd.name.trim())return;let up;
+          if(isEdit){up=[...parts];up[S.editingPart[jid]]={...fd}}else{up=[...parts,{...fd,id:uid()}]}
+          delete S.addingPart[jid];delete S.editingPart[jid];delete S.partForms[jid];updJob(jid,{parts:up});
+        }},isEdit?"Update":"Add Part"),
+      ),
+    );container.appendChild(form);
+  }else{
+    container.appendChild(h("button",{className:"btn-sm btn-ghost",style:{marginTop:"8px",width:"100%"},onClick:()=>{S.addingPart[jid]=true;S.partForms[jid]={name:"",partNumber:"",supplier:"",qty:1,status:"needed",orderDate:"",etaDate:"",tracking:"",notes:"",phase:job.phase};delete S.editingPart[jid];render()}},"+ Add Part / Material"));
+  }
+  return container;
+}
+
+function renderDocs(job){
+  const docs=job.docs||[];const jid=job.id;const container=h("div",null);
+  docs.forEach((d,i)=>{
+    const st=DOC_STATUSES.find(s=>s.id===d.status)||DOC_STATUSES[0];
+    const due=dL(d.dueDate);const isLate=d.dueDate&&d.status!=="approved"&&due!==null&&due<0;
+    container.appendChild(h("div",{className:"dr"},
+      h("div",{className:"dr-dot",style:{background:st.color}}),
+      h("div",{style:{flex:"1",minWidth:"0"}},
+        h("div",{style:{fontSize:"13px",fontWeight:"700",color:"var(--ink)"}},d.name),
+        h("div",{style:{fontSize:"11px",color:isLate?"var(--danger)":"#888",fontWeight:isLate?"700":"400"}},d.type+(d.dueDate?" · Due "+d.dueDate+(isLate?" ("+Math.abs(due)+"d late)":""):""))
+      ),
+      (()=>{const sel=h("select",{className:"pr-sel",style:{color:st.color},onChange:e=>{const up=[...docs];up[i]={...d,status:e.target.value};updJob(jid,{docs:up})}});DOC_STATUSES.forEach(s=>{const o=h("option",{value:s.id},s.label);if(s.id===d.status)o.selected=true;sel.appendChild(o)});return sel})(),
+      h("button",{className:"ck-x",onClick:()=>updJob(jid,{docs:docs.filter((_,j)=>j!==i)})},"×"),
+    ));
+  });
+  if(S.addingDoc[jid]){
+    const f=S.docForms[jid]||{name:"",type:"GA Drawing",status:"pending",dueDate:"",notes:""};
+    const sF=(k,v)=>{S.docForms[jid]={...(S.docForms[jid]||f),[k]:v}};
+    container.appendChild(h("div",{className:"iform fi"},
+      h("div",{className:"grid2"},
+        h("div",{className:"full"},h("label",{className:"lbl req"},"Document Name"),h("input",{className:"inp",value:f.name,placeholder:"e.g. GA Drawing Rev B",onInput:e=>sF("name",e.target.value)})),
+        h("div",null,h("label",{className:"lbl"},"Type"),(()=>{const sel=h("select",{className:"inp",onInput:e=>sF("type",e.target.value)});DOC_TYPES.forEach(t=>{const o=h("option",{value:t},t);if(t===f.type)o.selected=true;sel.appendChild(o)});return sel})()),
+        h("div",null,h("label",{className:"lbl"},"Due Date"),h("input",{className:"inp",type:"date",value:f.dueDate,onInput:e=>sF("dueDate",e.target.value)})),
+        h("div",{className:"full"},h("label",{className:"lbl"},"Notes"),h("input",{className:"inp",value:f.notes,placeholder:"Rev notes, who needs it...",onInput:e=>sF("notes",e.target.value)})),
+      ),
+      h("div",{className:"iform-acts"},
+        h("button",{className:"btn-sm btn-outline",onClick:()=>{delete S.addingDoc[jid];render()}},"Cancel"),
+        h("button",{className:"btn-sm btn-dark",style:{opacity:(S.docForms[jid]&&S.docForms[jid].name||"").trim()?"1":"0.35"},onClick:()=>{
+          const fd=S.docForms[jid];if(!fd||!fd.name.trim())return;delete S.addingDoc[jid];delete S.docForms[jid];updJob(jid,{docs:[...docs,{...fd,id:uid()}]});
+        }},"Add"),
+      ),
+    ));
+  }else{
+    container.appendChild(h("button",{className:"btn-sm btn-ghost",style:{marginTop:"8px",width:"100%"},onClick:()=>{S.addingDoc[jid]=true;S.docForms[jid]={name:"",type:"GA Drawing",status:"pending",dueDate:"",notes:""};render()}},"+ Add Document"));
+  }
+  return container;
+}
+
+function renderCard(job){
+  const phase=PHASES.find(p=>p.id===job.phase);const u=urg(job.due,job.phase),uc=UC[u],lbl=urgLbl(job.due,job.phase);
+  const isOpen=S.expanded[job.id];const tab=S.tabs[job.id]||"tasks";
+  const tasks=job.tasks||[],parts=job.parts||[],docs=job.docs||[];
+  const tD=tasks.filter(t=>t.done).length,pW=parts.filter(p=>p.status!=="received").length,dO=docs.filter(d=>d.status!=="approved").length;
+  const pL=parts.filter(p=>p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&dL(p.etaDate)<0).length;
+  const counts=[tasks.length>0&&tD+"/"+tasks.length+" tasks",pW>0&&pW+" parts waiting",dO>0&&dO+" docs open"].filter(Boolean);
+  const bc=u==="overdue"?"#EF4444":u==="hot"?"#F59E0B":phase.color;
+
+  const card=h("div",{className:"jc fi",style:{borderLeft:"4px solid "+bc,boxShadow:u==="overdue"?"0 1px 8px rgba(220,38,38,.08)":"0 1px 3px rgba(0,0,0,.04)"}},
+    h("div",{className:"jc-head",onClick:()=>{S.expanded[job.id]=!isOpen;render()}},
+      h("div",{style:{display:"flex",alignItems:"flex-start",gap:"10px"}},
+        h("div",{style:{flex:"1",minWidth:"0"}},
+          h("div",{className:"jc-name"},job.name),
+          h("div",{className:"jc-meta"},[job.client,job.vesselName&&("⚓ "+job.vesselName),job.vesselType&&("("+job.vesselType+")")].filter(Boolean).join(" · ")),
+          (job.poNumber||job.alarmPoints)?h("div",{className:"jc-meta",style:{marginTop:"1px"}},[job.poNumber&&("PO: "+job.poNumber),job.alarmPoints&&(job.alarmPoints+" pts")].filter(Boolean).join(" · ")):null,
+          h("div",{className:"jc-badges"},
+            h("span",{className:"badge",style:{background:phase.color+"14",color:phase.color}},phase.label),
+            lbl?h("span",{className:"badge",style:{background:uc.bg,color:uc.c,border:"1px solid "+uc.br,animation:u==="overdue"?"pulse 1.5s ease-in-out infinite":"none"}},(u==="overdue"?"⚠ ":"")+lbl):null,
+            pL>0?h("span",{style:{fontSize:"10px",fontWeight:"700",color:"var(--danger)"}},"📦 "+pL+" late"):null,
+            job.value?h("span",{style:{fontSize:"11px",color:"#aaa",fontWeight:"600"}},"$"+parseFloat(job.value).toLocaleString()):null,
+          ),
+          counts.length?h("div",{className:"jc-counts"},counts.join(" · ")):null,
+        ),
+        h("span",{style:{fontSize:"14px",color:"#ccc",marginTop:"2px"}},isOpen?"▾":"▸"),
+      ),
+    ),
+  );
+  if(!isOpen)return card;
+
+  const body=h("div",{className:"jc-body fi"});
+  if(job.scope)body.appendChild(h("div",{className:"jc-notes"},h("strong",null,"Scope: "),job.scope));
+  if(job.notes)body.appendChild(h("div",{className:"jc-notes"},job.notes));
+  const dates=[job.startDate&&("Start: "+job.startDate),job.dockDate&&("Dock: "+job.dockDate),job.seaTrialDate&&("Sea Trial: "+job.seaTrialDate)].filter(Boolean);
+  if(dates.length)body.appendChild(h("div",{style:{fontSize:"12px",color:"var(--ink3)",margin:"6px 0",display:"flex",gap:"12px",flexWrap:"wrap"}},...dates.map(d=>h("span",null,"📅 "+d))));
+
+  const pRow=h("div",{className:"ph-row"});
+  PHASES.forEach(p=>{
+    pRow.appendChild(h("button",{className:"ph-btn",style:job.phase===p.id?{borderColor:p.color,borderWidth:"2px",background:p.color+"14",color:p.color}:{},onClick:()=>{
+      if(p.id!==job.phase&&p.id!=="complete"){
+        const existing=tasks.map(t=>t.text.toLowerCase());
+        const nt=(PHASE_CHECKLISTS[p.id]||[]).filter(t=>!existing.includes(t.toLowerCase())).map(t=>({text:t,done:false,id:uid(),phase:p.id}));
+        if(nt.length>0&&confirm("Add "+nt.length+" starter tasks for "+p.label+"?")){updJob(job.id,{phase:p.id,tasks:[...tasks,...nt]});return}
+      }
+      updJob(job.id,{phase:p.id});
+    }},p.label));
+  });
+  body.appendChild(pRow);
+
+  const tabRow=h("div",{className:"tabs"});
+  [["tasks","Tasks ("+tasks.length+")"],["parts","Materials ("+parts.length+")"],["docs","Docs ("+docs.length+")"]].forEach(([id,l])=>{
+    tabRow.appendChild(h("button",{className:"tab"+(tab===id?" on":""),onClick:()=>{S.tabs[job.id]=id;render()}},l));
+  });
+  body.appendChild(tabRow);
+  const tc=h("div",{style:{marginTop:"10px"}});
+  if(tab==="tasks")tc.appendChild(renderTasks(job));else if(tab==="parts")tc.appendChild(renderParts(job));else tc.appendChild(renderDocs(job));
+  body.appendChild(tc);
+  body.appendChild(h("div",{className:"acts-row"},
+    h("button",{className:"btn-ghost",style:{flex:"1"},onClick:()=>set({editing:{...job}})},"✏️ Edit Job"),
+    h("button",{style:{padding:"8px 14px",background:"#FEE2E2",color:"var(--danger)",borderRadius:"8px",border:"none",fontSize:"13px",fontWeight:"600"},onClick:()=>{if(confirm("Delete this job?"))delJob(job.id)}},"🗑"),
+  ));
+  card.appendChild(body);return card;
+}
+
+function renderJobsView(app){
+  const sb=h("div",{className:"sbar"});
+  sb.appendChild(h("input",{placeholder:"Search jobs, clients, vessels, PO#...",value:S.search,onInput:e=>{S.search=e.target.value;render()}}));
+  app.appendChild(sb);
+
+  const fl=h("div",{className:"filts"});
+  fl.appendChild(h("button",{className:"fbtn"+(S.filter==="all"?" on":""),onClick:()=>{S.filter="all";render()}},"All ("+S.jobs.length+")"));
+  PHASES.forEach(p=>{
+    const c=S.jobs.filter(j=>j.phase===p.id).length;
+    fl.appendChild(h("button",{className:"fbtn"+(S.filter===p.id?" on":""),style:S.filter===p.id?{background:p.color+"18",color:p.color}:{},onClick:()=>{S.filter=p.id;render()}},p.label+" ("+c+")"));
+  });
+  app.appendChild(fl);
+
+  let filtered=S.jobs.filter(j=>{
+    if(S.filter!=="all"&&j.phase!==S.filter)return false;
+    if(S.search){const s=S.search.toLowerCase();return[j.name,j.client,j.vesselName,j.poNumber].some(f=>(f||"").toLowerCase().includes(s))}return true;
+  });
+  const pO={overdue:0,hot:1,soon:2,ok:3,none:4,done:5};
+  filtered.sort((a,b)=>{const ua=pO[urg(a.due,a.phase)]??5,ub=pO[urg(b.due,b.phase)]??5;if(ua!==ub)return ua-ub;if(a.due&&b.due)return a.due.localeCompare(b.due);return a.due?-1:1});
+
+  const list=h("div",{className:"jlist"});
+  if(!filtered.length)list.appendChild(h("div",{className:"empty"},h("div",{className:"empty-i"},S.jobs.length?"🔍":"⚓"),h("div",{className:"empty-t"},S.jobs.length?"No matches":"No jobs yet"),!S.jobs.length?h("div",{style:{fontSize:"13px",marginTop:"4px",color:"#ccc"}},"Tap '+ New Job' to get started"):null));
+  filtered.forEach(j=>list.appendChild(renderCard(j)));
+  app.appendChild(list);
+}
+
+function renderMats(){
+  const allP=S.jobs.flatMap(j=>(j.parts||[]).map(p=>({...p,jobName:j.name})));const container=h("div",{style:{padding:"14px"}});
+  const pLate=allP.filter(p=>p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&dL(p.etaDate)<0);
+  if(pLate.length){
+    const al=h("div",{style:{padding:"9px 12px",background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"8px",marginBottom:"12px"}},h("div",{style:{fontSize:"12px",fontWeight:"700",color:"var(--danger)",marginBottom:"4px"}},"🚨 "+pLate.length+" past ETA"));
+    pLate.forEach(p=>al.appendChild(h("div",{style:{fontSize:"12px",color:"#991B1B",padding:"1px 0"}},h("strong",null,p.name)," — "+p.jobName+" · "+Math.abs(dL(p.etaDate))+"d late")));
+    container.appendChild(al);
+  }
+  PART_STATUSES.forEach(st=>{
+    const items=allP.filter(p=>p.status===st.id);if(!items.length)return;
+    const sec=h("div",{className:"mat-s"},h("div",{className:"mat-h",style:{color:st.color}},st.dot+" "+st.label+" ("+items.length+")"));
+    items.forEach(p=>{const pD=PHASES.find(ph=>ph.id===p.phase);
+      sec.appendChild(h("div",{className:"mat-c",style:{borderLeft:"3px solid "+st.color}},
+        h("div",{style:{display:"flex",justifyContent:"space-between"}},
+          h("div",null,h("span",{style:{fontSize:"13px",fontWeight:"700",color:"var(--ink)"}},p.name+(p.qty>1?" ×"+p.qty:"")),pD?h("span",{className:"ph-tag",style:{background:pD.color+"14",color:pD.color}},pD.label):null),
+          h("div",{style:{fontSize:"10px",color:"#aaa",fontWeight:"600",textAlign:"right"}},"⚓ "+p.jobName),
+        ),
+        h("div",{style:{fontSize:"11px",color:"#888",marginTop:"2px"}},(p.supplier||"")+(p.etaDate?" · ETA "+p.etaDate:"")+(p.tracking?" · 📍"+p.tracking:"")),
+      ));
+    });container.appendChild(sec);
+  });
+  if(!allP.length)container.appendChild(h("div",{className:"empty"},h("div",{className:"empty-i"},"📦"),h("div",{className:"empty-t"},"No materials tracked yet")));
+  return container;
+}
+
+function renderDashboard(){
+  const{jobs}=S;
+  const active=jobs.filter(j=>j.phase!=="complete");
+  const overdue=active.filter(j=>urg(j.due,j.phase)==="overdue");
+  const hot=active.filter(j=>urg(j.due,j.phase)==="hot");
+  const allParts=jobs.flatMap(j=>(j.parts||[]).map(p=>({...p,jobName:j.name,jobId:j.id})));
+  const partsNeeded=allParts.filter(p=>p.status==="needed");
+  const partsLate=allParts.filter(p=>p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&dL(p.etaDate)<0);
+
+  // empty state
+  if(!jobs.length){
+    return h("div",{style:{textAlign:"center",padding:"70px 20px 40px",color:"#bbb"}},
+      h("div",{style:{fontSize:"56px",marginBottom:"14px"}},"⚓"),
+      h("div",{style:{fontSize:"20px",fontWeight:"800",color:"#555",marginBottom:"6px"}},"Welcome to Job Manager"),
+      h("div",{style:{fontSize:"14px",color:"#aaa",marginBottom:"24px"}},"Track jobs, materials, and documents for every vessel project."),
+      h("button",{className:"btn-add",style:{fontSize:"15px",padding:"12px 24px"},onClick:()=>set({editing:{},view:"jobs"})},"+ Create Your First Job"),
+    );
+  }
+
+  const wrap=h("div",{style:{padding:"14px",maxWidth:"960px",margin:"0 auto"}});
+
+  // ── Stat cards ──
+  const makeStatCard=(label,value,color,sub)=>h("div",{style:{background:"#fff",borderRadius:"10px",padding:"14px 16px",borderTop:"3px solid "+color}},
+    h("div",{style:{fontSize:"30px",fontWeight:"900",color,lineHeight:"1.1"}},""+value),
+    h("div",{style:{fontSize:"10px",fontWeight:"700",color:"#888",textTransform:"uppercase",letterSpacing:".5px",marginTop:"2px"}},label),
+    sub||null,
+  );
+
+  const phasePills=h("div",{style:{display:"flex",gap:"3px",flexWrap:"wrap",marginTop:"6px"}});
+  PHASES.filter(p=>p.id!=="complete").forEach(p=>{
+    const cnt=active.filter(j=>j.phase===p.id).length;if(!cnt)return;
+    phasePills.appendChild(h("span",{style:{fontSize:"9px",fontWeight:"700",padding:"2px 6px",borderRadius:"10px",background:p.color+"18",color:p.color}},cnt+" "+p.label));
+  });
+
+  const statGrid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:"10px",marginBottom:"14px"}});
+  statGrid.appendChild(makeStatCard("Active Jobs",active.length,"#5B8DEF",phasePills));
+  statGrid.appendChild(makeStatCard("Overdue",overdue.length,overdue.length?"#DC2626":"#9CA3AF"));
+  statGrid.appendChild(makeStatCard("Hot (≤7 days)",hot.length,hot.length?"#D97706":"#9CA3AF"));
+  statGrid.appendChild(makeStatCard("Parts Needed",partsNeeded.length,partsNeeded.length?"#E8A838":"#9CA3AF"));
+  if(partsLate.length)statGrid.appendChild(makeStatCard("Parts Late",partsLate.length,"#DC2626"));
+  wrap.appendChild(statGrid);
+
+  // ── Two-column row: Deadlines + Phase distribution ──
+  const twoCol=h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginBottom:"14px"}});
+
+  // Upcoming deadlines
+  const upcoming=[];
+  const today=new Date();today.setHours(0,0,0,0);
+  const in14=new Date(today);in14.setDate(in14.getDate()+14);
+  jobs.filter(j=>j.phase!=="complete").forEach(j=>{
+    [["due","Due"],["dockDate","Dock"],["seaTrialDate","Sea Trial"]].forEach(([key,lbl])=>{
+      if(!j[key])return;
+      const d=new Date(j[key]+"T00:00:00");
+      if(d>=today&&d<=in14)upcoming.push({job:j,date:j[key],days:dL(j[key]),lbl});
+    });
+  });
+  upcoming.sort((a,b)=>a.date.localeCompare(b.date));
+
+  const dlSec=h("div",{style:{background:"#fff",borderRadius:"10px",padding:"14px 16px"}},
+    h("div",{style:{fontSize:"10px",fontWeight:"800",textTransform:"uppercase",letterSpacing:"1px",color:"#888",marginBottom:"10px"}},"Upcoming (14 days)"),
+  );
+  if(!upcoming.length){
+    dlSec.appendChild(h("div",{style:{fontSize:"13px",color:"#bbb",padding:"8px 0"}},"No deadlines in next 14 days ✓"));
+  }else{
+    upcoming.slice(0,6).forEach(({job,days,lbl})=>{
+      const isToday=days===0;
+      const dc=days<=0?"#DC2626":days<=3?"#B45309":"#1D4ED8";
+      const bg=days<=0?"#FEF2F2":days<=3?"#FFFBEB":"#EFF6FF";
+      dlSec.appendChild(h("div",{style:{display:"flex",alignItems:"center",gap:"8px",padding:"6px 0",borderBottom:"1px solid #F3F3F0",cursor:"pointer"},onClick:()=>set({view:"jobs",expanded:{...S.expanded,[job.id]:true}})},
+        h("div",{style:{width:"38px",textAlign:"center",background:bg,borderRadius:"6px",padding:"3px 2px",flexShrink:"0"}},
+          h("div",{style:{fontSize:"14px",fontWeight:"900",color:dc,lineHeight:"1"}},isToday?"!":""+days),
+          h("div",{style:{fontSize:"8px",fontWeight:"700",color:"#aaa",marginTop:"1px"}},isToday?"TODAY":"days"),
+        ),
+        h("div",{style:{flex:"1",minWidth:"0"}},
+          h("div",{style:{fontSize:"13px",fontWeight:"700",color:"#111",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},job.name),
+          h("div",{style:{fontSize:"11px",color:"#888"}},lbl+(job.client?" · "+job.client:"")),
+        ),
+      ));
+    });
+  }
+  twoCol.appendChild(dlSec);
+
+  // Phase distribution
+  const phSec=h("div",{style:{background:"#fff",borderRadius:"10px",padding:"14px 16px"}},
+    h("div",{style:{fontSize:"10px",fontWeight:"800",textTransform:"uppercase",letterSpacing:"1px",color:"#888",marginBottom:"10px"}},"Jobs by Phase"),
+  );
+  PHASES.forEach(p=>{
+    const cnt=jobs.filter(j=>j.phase===p.id).length;if(!cnt)return;
+    const pct=Math.round((cnt/jobs.length)*100);
+    phSec.appendChild(h("div",{style:{marginBottom:"9px"}},
+      h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"3px"}},
+        h("div",{style:{fontSize:"12px",fontWeight:"700",color:p.color}},p.label),
+        h("div",{style:{fontSize:"11px",fontWeight:"700",color:"#888"}},cnt+" job"+(cnt!==1?"s":"")),
+      ),
+      h("div",{style:{height:"6px",background:"#F3F3F0",borderRadius:"3px",overflow:"hidden"}},
+        h("div",{style:{height:"100%",width:pct+"%",background:p.color,borderRadius:"3px"}}),
+      ),
+    ));
+  });
+  twoCol.appendChild(phSec);
+  wrap.appendChild(twoCol);
+
+  // ── Parts alerts ──
+  const jobsWithNeeded=jobs.filter(j=>(j.parts||[]).some(p=>p.status==="needed"));
+  if(jobsWithNeeded.length){
+    const pO={overdue:0,hot:1,soon:2,ok:3,none:4,done:5};
+    const alertSec=h("div",{style:{background:"#fff",borderRadius:"10px",padding:"14px 16px",marginBottom:"14px"}},
+      h("div",{style:{fontSize:"10px",fontWeight:"800",textTransform:"uppercase",letterSpacing:"1px",color:"#888",marginBottom:"10px"}},"Parts Alerts — Procurement Needed"),
+    );
+    [...jobsWithNeeded].sort((a,b)=>(pO[urg(a.due,a.phase)]??5)-(pO[urg(b.due,b.phase)]??5)).slice(0,5).forEach(job=>{
+      const needed=(job.parts||[]).filter(p=>p.status==="needed");
+      const u=urg(job.due,job.phase);const uc=UC[u];
+      alertSec.appendChild(h("div",{style:{display:"flex",alignItems:"flex-start",gap:"10px",padding:"8px 0",borderBottom:"1px solid #F3F3F0",cursor:"pointer"},onClick:()=>set({view:"jobs",expanded:{...S.expanded,[job.id]:true},tabs:{...S.tabs,[job.id]:"parts"}})},
+        h("div",{style:{width:"8px",height:"8px",borderRadius:"4px",background:u==="overdue"?"#DC2626":u==="hot"?"#D97706":"#9CA3AF",marginTop:"4px",flexShrink:"0"}}),
+        h("div",{style:{flex:"1",minWidth:"0"}},
+          h("div",{style:{fontSize:"13px",fontWeight:"700",color:"#111"}},job.name+" — "+needed.length+" part"+(needed.length!==1?"s":"")+" needed"),
+          h("div",{style:{fontSize:"11px",color:"#888",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},needed.map(p=>p.name).join(", ")),
+        ),
+        u!=="none"&&u!=="done"?h("span",{style:{fontSize:"10px",fontWeight:"700",padding:"2px 6px",borderRadius:"4px",background:uc.bg,color:uc.c,border:"1px solid "+uc.br,flexShrink:"0"}},urgLbl(job.due,job.phase)):null,
+      ));
+    });
+    wrap.appendChild(alertSec);
+  }
+
+  // ── Recent jobs ──
+  const recent=[...jobs].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).slice(0,4);
+  if(recent.length){
+    const recSec=h("div",{style:{background:"#fff",borderRadius:"10px",padding:"14px 16px"}},
+      h("div",{style:{fontSize:"10px",fontWeight:"800",textTransform:"uppercase",letterSpacing:"1px",color:"#888",marginBottom:"10px"}},"Recent Jobs"),
+    );
+    recent.forEach(job=>{
+      const phase=PHASES.find(p=>p.id===job.phase)||PHASES[0];
+      const tasks=job.tasks||[];const done=tasks.filter(t=>t.done).length;
+      const u=urg(job.due,job.phase);const uc=UC[u];
+      recSec.appendChild(h("div",{style:{display:"flex",alignItems:"center",gap:"10px",padding:"8px 0",borderBottom:"1px solid #F3F3F0",cursor:"pointer"},onClick:()=>set({view:"jobs",expanded:{...S.expanded,[job.id]:true}})},
+        h("div",{style:{width:"8px",height:"8px",borderRadius:"4px",background:phase.color,flexShrink:"0"}}),
+        h("div",{style:{flex:"1",minWidth:"0"}},
+          h("div",{style:{fontSize:"13px",fontWeight:"700",color:"#111",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},job.name),
+          h("div",{style:{fontSize:"11px",color:"#888"}},phase.label+(job.client?" · "+job.client:"")+(tasks.length?" · "+done+"/"+tasks.length+" tasks":"")),
+        ),
+        u!=="none"&&u!=="done"?h("span",{style:{fontSize:"10px",fontWeight:"700",padding:"2px 6px",borderRadius:"4px",background:uc.bg,color:uc.c,border:"1px solid "+uc.br,flexShrink:"0"}},urgLbl(job.due,job.phase)):null,
+        h("span",{style:{fontSize:"14px",color:"#ddd"}},"▸"),
+      ));
+    });
+    wrap.appendChild(recSec);
+  }
+
+  return wrap;
+}
+
+function exportData(){
+  const data={jobs:S.jobs,contacts:S.contacts,settings:S.settings,exportedAt:new Date().toISOString(),version:"mas-pm-v1"};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;a.download="mas-pm-backup-"+date+".json";a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data.jobs)){alert("Invalid backup file — missing jobs array.");return}
+      if(!confirm("This will replace all current data with the backup.\n\n"+data.jobs.length+" jobs found.\nExported: "+(data.exportedAt||"unknown")+"\n\nContinue?"))return;
+      S.jobs=data.jobs||[];
+      S.contacts=data.contacts||[];
+      S.settings=Object.assign(defaultSettings(),data.settings||{});
+      persist();
+      alert("✓ Import complete: "+S.jobs.length+" jobs loaded.");
+    }catch(err){alert("Error reading file. Make sure it is a valid backup JSON.\n\n"+err.message);}
+  };
+  reader.readAsText(file);
+}
+
+function renderSettings(){
+  const cfg=S.settings;
+  const wrap=h("div",{style:{padding:"14px",maxWidth:"600px",margin:"0 auto"}});
+
+  const field=(label,val,onch,type)=>{
+    const w=h("div",null);
+    w.appendChild(h("label",{className:"lbl"},label));
+    w.appendChild(h("input",{className:"inp",type:type||"text",value:val,onInput:e=>onch(e.target.value)}));
+    return w;
+  };
+
+  // Company info
+  const coSaved={...cfg.company};
+  const coForm=h("div",{style:{background:"#fff",borderRadius:"10px",padding:"18px",marginBottom:"12px"}},
+    h("div",{style:{fontSize:"14px",fontWeight:"800",marginBottom:"14px"}},"Company Info"),
+    h("div",{style:{display:"grid",gap:"10px"}},
+      field("Company Name",cfg.company.name,v=>{S.settings.company.name=v}),
+      field("Address",cfg.company.address,v=>{S.settings.company.address=v}),
+      h("div",{className:"grid2"},
+        field("Phone",cfg.company.phone,v=>{S.settings.company.phone=v},"tel"),
+        field("Email",cfg.company.email,v=>{S.settings.company.email=v},"email"),
+      ),
+    ),
+    h("div",{style:{marginTop:"14px",display:"flex",justifyContent:"flex-end"}},
+      h("button",{className:"btn-sm btn-dark",onClick:()=>{persist();const b=document.getElementById("co-saved");if(b){b.style.opacity="1";setTimeout(()=>{b.style.opacity="0"},1800)}}},"Save"),
+      h("span",{id:"co-saved",style:{marginLeft:"10px",fontSize:"12px",color:"var(--ok)",fontWeight:"700",transition:"opacity .4s",opacity:"0"}},"✓ Saved"),
+    ),
+  );
+  wrap.appendChild(coForm);
+
+  // Data management
+  const dataRow=(title,desc,ctrl)=>h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",padding:"12px",background:"#F8F8F6",borderRadius:"8px"}},
+    h("div",null,h("div",{style:{fontSize:"13px",fontWeight:"700"}},title),h("div",{style:{fontSize:"12px",color:"#888",marginTop:"2px"}},desc)),
+    ctrl,
+  );
+
+  const fileInp=h("input",{type:"file",accept:".json",style:{display:"none"},onChange:importData});
+  const importLbl=h("label",{style:{cursor:"pointer"}},
+    h("span",{className:"btn-sm btn-outline"},"Import JSON"),
+    fileInp,
+  );
+
+  wrap.appendChild(h("div",{style:{background:"#fff",borderRadius:"10px",padding:"18px",marginBottom:"12px"}},
+    h("div",{style:{fontSize:"14px",fontWeight:"800",marginBottom:"14px"}},"Data Management"),
+    h("div",{style:{display:"flex",flexDirection:"column",gap:"8px"}},
+      dataRow("Export Data","Download all jobs and settings as a JSON backup file",h("button",{className:"btn-sm btn-dark",onClick:exportData},"Export JSON")),
+      dataRow("Import Data","Restore from a previously exported JSON backup",importLbl),
+    ),
+  ));
+
+  // Job stats
+  const jobsByPhase=PHASES.map(p=>({phase:p,cnt:S.jobs.filter(j=>j.phase===p.id).length})).filter(x=>x.cnt>0);
+  if(S.jobs.length){
+    wrap.appendChild(h("div",{style:{background:"#fff",borderRadius:"10px",padding:"18px",marginBottom:"12px"}},
+      h("div",{style:{fontSize:"14px",fontWeight:"800",marginBottom:"10px"}},"Overview"),
+      h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px"}},
+        ...[
+          ["Total Jobs",""+S.jobs.length,"#5B8DEF"],
+          ["Active",""+(S.jobs.filter(j=>j.phase!=="complete").length),"#E8A838"],
+          ["Complete",""+(S.jobs.filter(j=>j.phase==="complete").length),"#059669"],
+        ].map(([l,v,c])=>h("div",{style:{textAlign:"center",padding:"10px",background:"#F8F8F6",borderRadius:"8px"}},
+          h("div",{style:{fontSize:"22px",fontWeight:"900",color:c}},v),
+          h("div",{style:{fontSize:"10px",fontWeight:"700",color:"#888",textTransform:"uppercase"}},l),
+        )),
+      ),
+    ));
+  }
+
+  // Danger zone
+  wrap.appendChild(h("div",{style:{background:"#fff",border:"1px solid #FECACA",borderRadius:"10px",padding:"18px"}},
+    h("div",{style:{fontSize:"14px",fontWeight:"800",color:"var(--danger)",marginBottom:"10px"}},"Danger Zone"),
+    h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"}},
+      h("div",null,
+        h("div",{style:{fontSize:"13px",fontWeight:"700"}},"Reset All Data"),
+        h("div",{style:{fontSize:"12px",color:"#888",marginTop:"2px"}},"Permanently delete all jobs, contacts, and settings"),
+      ),
+      h("button",{className:"btn-sm",style:{background:"var(--danger)",color:"#fff",flexShrink:"0"},onClick:()=>{
+        if(confirm("This will permanently delete ALL data and cannot be undone.\n\nType DELETE to confirm") !==false){
+          S.jobs=[];S.contacts=[];S.settings=defaultSettings();persist();
+        }
+      }},"Reset All"),
+    ),
+  ));
+
+  return wrap;
+}
+
+function render(){
+  const app=document.getElementById("app");app.innerHTML="";
+  app.appendChild(renderHeader());
+
+  if(S.view==="dashboard"){
+    app.appendChild(renderDashboard());
+  }else if(S.view==="jobs"){
+    const active=S.jobs.filter(j=>j.phase!=="complete");
+    const overdue=active.filter(j=>urg(j.due,j.phase)==="overdue");
+    if(overdue.length)app.appendChild(h("div",{className:"alert-bar"},"⚠️ "+overdue.length+" job"+(overdue.length>1?"s":"")+" overdue — "+overdue.map(j=>j.name).join(", ")));
+    renderJobsView(app);
+  }else if(S.view==="materials"){
+    app.appendChild(renderMats());
+  }else if(S.view==="settings"){
+    app.appendChild(renderSettings());
+  }
+
+  app.appendChild(h("div",{style:{height:"40px"}}));
+  const modal=renderModal();if(modal)app.appendChild(modal);
+
+  if(S.view==="jobs"&&S.search){
+    const si=app.querySelector(".sbar input");
+    if(si){si.focus();si.setSelectionRange(S.search.length,S.search.length)}
+  }
+}
+render();
+
+</script>
+</body>
+</html>
