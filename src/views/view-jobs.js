@@ -58,6 +58,7 @@ function renderCard(job){
   body.appendChild(tc);
   body.appendChild(h("div",{className:"acts-row"},
     h("button",{className:"btn-ghost",style:{flex:"1"},onClick:()=>set({editing:{...job}})},"✏️ Edit Job"),
+    h("button",{className:"btn-ghost",onClick:()=>{S.expanded[job.id]=false;render()}},"▲ Collapse"),
     h("button",{style:{padding:"8px 14px",background:"#FEE2E2",color:"var(--danger)",borderRadius:"8px",border:"none",fontSize:"13px",fontWeight:"600"},onClick:()=>{if(confirm("Delete this job?"))delJob(job.id)}},"🗑"),
   ));
   card.appendChild(body);return card;
