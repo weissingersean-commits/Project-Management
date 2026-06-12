@@ -51,7 +51,7 @@ let S={
   addingShipment:{},
   editingShipment:{},
   shipmentForms:{},
-  showNotifications:false,,
+  showNotifications:false,
 };
 
 function set(p){Object.assign(S,p);render()}
