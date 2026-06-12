@@ -52,7 +52,7 @@ function renderModal(){
     h("button",{className:"btn-dark",style:{fontWeight:"700",opacity:(j.name||"").trim()&&(j.vesselName||"").trim()?"1":"0.35"},onClick:()=>{
       const f=S.editing;if(!(f.name||"").trim()||!(f.vesselName||"").trim())return;
       if(f.id){S.jobs=S.jobs.map(j2=>j2.id===f.id?{...j2,...f}:j2)}
-      else{const ph=f.phase||"design";const st=(PHASE_CHECKLISTS[ph]||[]).map(t=>({text:t,done:false,id:uid(),phase:ph}));S.jobs.push({...f,id:uid(),tasks:st,parts:[],docs:[],createdAt:new Date().toISOString()})}
+      else{const ph=f.phase||"design";const st=(PHASE_CHECKLISTS[ph]||[]).map(t=>({text:t,done:false,id:uid(),phase:ph}));S.jobs.push({...f,phase:ph,id:uid(),tasks:st,parts:[],docs:[],createdAt:new Date().toISOString()})}
       S.editing=null;persist();
     }},isE?"Save Changes":"Create Job"),
   ));

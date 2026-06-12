@@ -371,7 +371,7 @@ function renderModal(){
     h("button",{className:"btn-dark",style:{fontWeight:"700",opacity:(j.name||"").trim()&&(j.vesselName||"").trim()?"1":"0.35"},onClick:()=>{
       const f=S.editing;if(!(f.name||"").trim()||!(f.vesselName||"").trim())return;
       if(f.id){S.jobs=S.jobs.map(j2=>j2.id===f.id?{...j2,...f}:j2)}
-      else{const ph=f.phase||"design";const st=(PHASE_CHECKLISTS[ph]||[]).map(t=>({text:t,done:false,id:uid(),phase:ph}));S.jobs.push({...f,id:uid(),tasks:st,parts:[],docs:[],createdAt:new Date().toISOString()})}
+      else{const ph=f.phase||"design";const st=(PHASE_CHECKLISTS[ph]||[]).map(t=>({text:t,done:false,id:uid(),phase:ph}));S.jobs.push({...f,phase:ph,id:uid(),tasks:st,parts:[],docs:[],createdAt:new Date().toISOString()})}
       S.editing=null;persist();
     }},isE?"Save Changes":"Create Job"),
   ));
@@ -524,7 +524,7 @@ function renderDocs(job){
 }
 
 function renderCard(job){
-  const phase=PHASES.find(p=>p.id===job.phase);const u=urg(job.due,job.phase),uc=UC[u],lbl=urgLbl(job.due,job.phase);
+  const phase=PHASES.find(p=>p.id===job.phase)||PHASES[0];const u=urg(job.due,job.phase),uc=UC[u],lbl=urgLbl(job.due,job.phase);
   const isOpen=S.expanded[job.id];const tab=S.tabs[job.id]||"tasks";
   const tasks=job.tasks||[],parts=job.parts||[],docs=job.docs||[];
   const tD=tasks.filter(t=>t.done).length,pW=parts.filter(p=>p.status!=="received").length,dO=docs.filter(d=>d.status!=="approved").length;

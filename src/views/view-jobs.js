@@ -1,5 +1,5 @@
 function renderCard(job){
-  const phase=PHASES.find(p=>p.id===job.phase);const u=urg(job.due,job.phase),uc=UC[u],lbl=urgLbl(job.due,job.phase);
+  const phase=PHASES.find(p=>p.id===job.phase)||PHASES[0];const u=urg(job.due,job.phase),uc=UC[u],lbl=urgLbl(job.due,job.phase);
   const isOpen=S.expanded[job.id];const tab=S.tabs[job.id]||"tasks";
   const tasks=job.tasks||[],parts=job.parts||[],docs=job.docs||[];
   const tD=tasks.filter(t=>t.done).length,pW=parts.filter(p=>p.status!=="received").length,dO=docs.filter(d=>d.status!=="approved").length;
