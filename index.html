@@ -89,6 +89,15 @@ button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inh
 .mat-s{margin-bottom:14px}
 .mat-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
 .mat-c{background:#fff;border-radius:7px;padding:9px 12px;margin-bottom:5px}
+.bell-btn{position:relative;background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:7px 9px;font-size:15px;cursor:pointer;line-height:1;transition:background .15s}
+.bell-btn:hover{background:rgba(255,255,255,.2)}
+.bell-badge{position:absolute;top:-5px;right:-5px;background:#EF4444;color:#fff;border-radius:10px;font-size:9px;font-weight:800;padding:1px 4px;min-width:16px;text-align:center;line-height:14px;pointer-events:none}
+.notif-panel{background:#1C1C1C;border-top:1px solid #2E2E2E;padding:10px 16px;max-height:260px;overflow-y:auto}
+.notif-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid #2A2A2A}
+.notif-item:last-child{border-bottom:none}
+.notif-dot{width:7px;height:7px;border-radius:4px;margin-top:5px;flex-shrink:0}
+.notif-title{font-size:13px;font-weight:700;color:#f0f0f0}
+.notif-sub{font-size:11px;color:#888;margin-top:1px}
 @media(max-width:600px){.grid2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -270,6 +279,10 @@ let S={
   partForms:{},
   addingDoc:{},
   docForms:{},
+  addingShipment:{},
+  editingShipment:{},
+  shipmentForms:{},
+  showNotifications:false,,
 };
 
 function set(p){Object.assign(S,p);render()}
@@ -281,9 +294,14 @@ function renderHeader(){
   const{jobs,view}=S;
   const active=jobs.filter(j=>j.phase!=="complete");
   const overdue=active.filter(j=>urg(j.due,j.phase)==="overdue");
+  const hot=active.filter(j=>urg(j.due,j.phase)==="hot");
   const allP=jobs.flatMap(j=>(j.parts||[]));
   const pN=allP.filter(p=>p.status==="needed");
   const pL=allP.filter(p=>p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&dL(p.etaDate)<0);
+  const allSh=jobs.flatMap(j=>(j.shipments||[]).map(s=>({...s,jobName:j.name})));
+  const shLate=allSh.filter(s=>s.etaDate&&s.status==="in_transit"&&dL(s.etaDate)<0);
+
+  const alertCount=overdue.length+shLate.length+pL.length;
 
   const nav=[
     ["dashboard","Dashboard"],
@@ -292,13 +310,19 @@ function renderHeader(){
     ["settings","Settings"],
   ];
 
-  return h("div",{className:"hdr"},
+  const hdr=h("div",{className:"hdr"},
     h("div",{className:"hdr-row"},
       h("div",null,
         h("div",{className:"hdr-sub"},S.settings.company.name||"Marine Alarm Systems"),
         h("h1",null,"Job Manager"),
       ),
-      view!=="settings"?h("button",{className:"btn-add",onClick:()=>set({editing:{},view:"jobs"})},"+ New Job"):null,
+      h("div",{style:{display:"flex",gap:"8px",alignItems:"center"}},
+        h("button",{className:"bell-btn",onClick:()=>{S.showNotifications=!S.showNotifications;render()},title:"Notifications"},
+          "🔔",
+          alertCount>0?h("span",{className:"bell-badge"},""+alertCount):null,
+        ),
+        view!=="settings"?h("button",{className:"btn-add",onClick:()=>set({editing:{},view:"jobs"})},"+ New Job"):null,
+      ),
     ),
     h("div",{className:"stats"},
       ...[
@@ -315,6 +339,32 @@ function renderHeader(){
       ...nav.map(([id,l])=>h("button",{className:view===id?"on":"",onClick:()=>set({view:id})},l)),
     ),
   );
+
+  if(S.showNotifications){
+    const panel=h("div",{className:"notif-panel"});
+    const items=[];
+    overdue.forEach(j=>items.push({dot:"#EF4444",title:j.name,sub:"Overdue — "+urgLbl(j.due,j.phase)}));
+    hot.forEach(j=>items.push({dot:"#F59E0B",title:j.name,sub:"Due soon — "+urgLbl(j.due,j.phase)}));
+    shLate.forEach(s=>items.push({dot:"#EF4444",title:s.jobName+" — "+s.name,sub:"Shipment past ETA ("+s.etaDate+")"}));
+    pL.forEach(p=>items.push({dot:"#F59E0B",title:p.name||(p.partNumber||"Part"),sub:"Part past ETA — "+urgLbl(p.etaDate)}));
+
+    if(!items.length){
+      panel.appendChild(h("div",{style:{color:"#888",fontSize:"13px",padding:"6px 0"}},"✓ All clear — no overdue items"));
+    }else{
+      items.forEach(it=>{
+        const row=h("div",{className:"notif-item"});
+        row.appendChild(h("div",{className:"notif-dot",style:{background:it.dot}}));
+        const txt=h("div",null);
+        txt.appendChild(h("div",{className:"notif-title"},it.title));
+        txt.appendChild(h("div",{className:"notif-sub"},it.sub));
+        row.appendChild(txt);
+        panel.appendChild(row);
+      });
+    }
+    hdr.appendChild(panel);
+  }
+
+  return hdr;
 }
 
 function renderModal(){
@@ -371,7 +421,7 @@ function renderModal(){
     h("button",{className:"btn-dark",style:{fontWeight:"700",opacity:(j.name||"").trim()&&(j.vesselName||"").trim()?"1":"0.35"},onClick:()=>{
       const f=S.editing;if(!(f.name||"").trim()||!(f.vesselName||"").trim())return;
       if(f.id){S.jobs=S.jobs.map(j2=>j2.id===f.id?{...j2,...f}:j2)}
-      else{const ph=f.phase||"design";const st=(PHASE_CHECKLISTS[ph]||[]).map(t=>({text:t,done:false,id:uid(),phase:ph}));S.jobs.push({...f,phase:ph,id:uid(),tasks:st,parts:[],docs:[],createdAt:new Date().toISOString()})}
+      else{const ph=f.phase||"design";const st=(PHASE_CHECKLISTS[ph]||[]).map(t=>({text:t,done:false,id:uid(),phase:ph}));const defSh=[{id:uid(),name:"Shipment 1 — Cable & Field Sensors",carrier:"",tracking:"",etaDate:"",status:"pending",notes:"Cable, conduit, field sensors, terminal blocks"},{id:uid(),name:"Shipment 2 — MAS Enclosure & HMIs",carrier:"",tracking:"",etaDate:"",status:"pending",notes:"Main alarm panel enclosure, HMI displays, power supplies"}];S.jobs.push({...f,phase:ph,id:uid(),tasks:st,parts:[],docs:[],shipments:defSh,createdAt:new Date().toISOString()})}
       S.editing=null;persist();
     }},isE?"Save Changes":"Create Job"),
   ));
@@ -523,13 +573,90 @@ function renderDocs(job){
   return container;
 }
 
+const SHIPMENT_STATUSES=[
+  {id:"pending",label:"Pending",color:"#9CA3AF"},
+  {id:"in_transit",label:"In Transit",color:"#3B82F6"},
+  {id:"delivered",label:"Delivered",color:"#059669"},
+];
+
+function renderShipments(job){
+  const jid=job.id;const shipments=job.shipments||[];
+  const container=h("div",null);
+
+  shipments.forEach((sh,idx)=>{
+    const st=SHIPMENT_STATUSES.find(s=>s.id===sh.status)||SHIPMENT_STATUSES[0];
+    const isEditing=S.editingShipment[jid]===idx;
+
+    if(isEditing){
+      const f=S.shipmentForms[jid]||{...sh};
+      const sF=(k,v)=>{S.shipmentForms[jid]={...(S.shipmentForms[jid]||sh),[k]:v};render()};
+      const card=h("div",{style:{background:"#F9F9F7",border:"1px solid var(--line)",borderRadius:"8px",padding:"12px",marginBottom:"8px"}});
+      const r1=h("div",{className:"grid2"});
+      const nw=h("div",null);nw.appendChild(h("label",{className:"lbl"},"Shipment Name"));nw.appendChild(h("input",{className:"inp",value:f.name||"",onInput:e=>sF("name",e.target.value)}));r1.appendChild(nw);
+      const sw=h("div",null);sw.appendChild(h("label",{className:"lbl"},"Status"));
+      const sel=h("select",{className:"inp",style:{cursor:"pointer"},onChange:e=>sF("status",e.target.value)});
+      SHIPMENT_STATUSES.forEach(s=>{const o=h("option",{value:s.id},s.label);if((f.status||"pending")===s.id)o.selected=true;sel.appendChild(o)});
+      sw.appendChild(sel);r1.appendChild(sw);card.appendChild(r1);
+      const r2=h("div",{className:"grid2",style:{marginTop:"6px"}});
+      const cw=h("div",null);cw.appendChild(h("label",{className:"lbl"},"Carrier"));cw.appendChild(h("input",{className:"inp",placeholder:"UPS, FedEx...",value:f.carrier||"",onInput:e=>sF("carrier",e.target.value)}));r2.appendChild(cw);
+      const tw=h("div",null);tw.appendChild(h("label",{className:"lbl"},"Tracking #"));tw.appendChild(h("input",{className:"inp",placeholder:"1Z999AA10123456784",value:f.tracking||"",onInput:e=>sF("tracking",e.target.value)}));r2.appendChild(tw);card.appendChild(r2);
+      const r3=h("div",{className:"grid2",style:{marginTop:"6px"}});
+      const ew=h("div",null);ew.appendChild(h("label",{className:"lbl"},"ETA Date"));ew.appendChild(h("input",{className:"inp",type:"date",value:f.etaDate||"",onInput:e=>sF("etaDate",e.target.value)}));r3.appendChild(ew);
+      const nt=h("div",null);nt.appendChild(h("label",{className:"lbl"},"Contents / Notes"));nt.appendChild(h("input",{className:"inp",placeholder:"What's in this shipment...",value:f.notes||"",onInput:e=>sF("notes",e.target.value)}));r3.appendChild(nt);card.appendChild(r3);
+      const acts=h("div",{style:{display:"flex",gap:"6px",marginTop:"10px"}});
+      acts.appendChild(h("button",{className:"btn-sm btn-dark",onClick:()=>{const upd=[...shipments];upd[idx]={...upd[idx],...S.shipmentForms[jid]};updJob(jid,{shipments:upd});delete S.editingShipment[jid];delete S.shipmentForms[jid]}},"Save"));
+      acts.appendChild(h("button",{className:"btn-sm btn-ghost",onClick:()=>{delete S.editingShipment[jid];delete S.shipmentForms[jid];render()}},"Cancel"));
+      acts.appendChild(h("button",{className:"btn-sm",style:{background:"#FEE2E2",color:"var(--danger)"},onClick:()=>{if(!confirm("Remove this shipment?"))return;updJob(jid,{shipments:shipments.filter((_,i)=>i!==idx)});delete S.editingShipment[jid];delete S.shipmentForms[jid]}},"Delete"));
+      card.appendChild(acts);container.appendChild(card);
+    }else{
+      const isLate=sh.etaDate&&sh.status==="in_transit"&&dL(sh.etaDate)<0;
+      const card=h("div",{style:{background:"#fff",border:"1px solid "+(isLate?"#FECACA":"var(--line)"),borderLeft:"3px solid "+st.color,borderRadius:"8px",padding:"10px 12px",marginBottom:"8px",cursor:"pointer"},onClick:()=>{S.editingShipment[jid]=idx;S.shipmentForms[jid]={...sh};render()}});
+      const top=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}});
+      top.appendChild(h("div",{style:{fontWeight:"700",fontSize:"13px",color:"#111"}},sh.name||"Unnamed Shipment"));
+      top.appendChild(h("span",{style:{fontSize:"10px",fontWeight:"700",padding:"2px 7px",borderRadius:"4px",background:st.color+"18",color:st.color}},st.label));
+      card.appendChild(top);
+      const meta=[];if(sh.carrier)meta.push(sh.carrier);if(sh.tracking)meta.push("📦 "+sh.tracking);if(sh.etaDate)meta.push((isLate?"⚠ LATE — ETA: ":"ETA: ")+sh.etaDate);
+      if(meta.length)card.appendChild(h("div",{style:{fontSize:"12px",color:isLate?"var(--danger)":"var(--ink3)",marginTop:"4px"}},meta.join("  ·  ")));
+      if(sh.notes)card.appendChild(h("div",{style:{fontSize:"12px",color:"var(--ink3)",marginTop:"3px",fontStyle:"italic"}},sh.notes));
+      container.appendChild(card);
+    }
+  });
+
+  if(S.addingShipment[jid]){
+    const f=S.shipmentForms[jid]||{name:"",carrier:"",tracking:"",etaDate:"",status:"pending",notes:""};
+    const sF=(k,v)=>{S.shipmentForms[jid]={...(S.shipmentForms[jid]||{}),[k]:v};render()};
+    const form=h("div",{style:{background:"#F9F9F7",border:"1px solid var(--line)",borderRadius:"8px",padding:"12px",marginTop:"4px"}});
+    form.appendChild(h("div",{style:{fontWeight:"700",fontSize:"12px",color:"#555",marginBottom:"8px"}},"New Shipment"));
+    const nw=h("div",null);nw.appendChild(h("label",{className:"lbl"},"Shipment Name"));nw.appendChild(h("input",{className:"inp",placeholder:"e.g. Shipment 1 — Cable & Field Sensors",value:f.name||"",onInput:e=>sF("name",e.target.value)}));form.appendChild(nw);
+    const r2=h("div",{className:"grid2",style:{marginTop:"6px"}});
+    const cw=h("div",null);cw.appendChild(h("label",{className:"lbl"},"Carrier"));cw.appendChild(h("input",{className:"inp",placeholder:"UPS, FedEx...",value:f.carrier||"",onInput:e=>sF("carrier",e.target.value)}));r2.appendChild(cw);
+    const tw=h("div",null);tw.appendChild(h("label",{className:"lbl"},"Tracking #"));tw.appendChild(h("input",{className:"inp",placeholder:"1Z999AA10123456784",value:f.tracking||"",onInput:e=>sF("tracking",e.target.value)}));r2.appendChild(tw);form.appendChild(r2);
+    const r3=h("div",{className:"grid2",style:{marginTop:"6px"}});
+    const ew=h("div",null);ew.appendChild(h("label",{className:"lbl"},"ETA Date"));ew.appendChild(h("input",{className:"inp",type:"date",value:f.etaDate||"",onInput:e=>sF("etaDate",e.target.value)}));r3.appendChild(ew);
+    const sw2=h("div",null);sw2.appendChild(h("label",{className:"lbl"},"Status"));
+    const sel2=h("select",{className:"inp",style:{cursor:"pointer"},onChange:e=>sF("status",e.target.value)});
+    SHIPMENT_STATUSES.forEach(s=>{const o=h("option",{value:s.id},s.label);if((f.status||"pending")===s.id)o.selected=true;sel2.appendChild(o)});
+    sw2.appendChild(sel2);r3.appendChild(sw2);form.appendChild(r3);
+    const nt=h("div",{style:{marginTop:"6px"}});nt.appendChild(h("label",{className:"lbl"},"Contents / Notes"));nt.appendChild(h("input",{className:"inp",placeholder:"Cable, sensors, enclosure...",value:f.notes||"",onInput:e=>sF("notes",e.target.value)}));form.appendChild(nt);
+    const acts=h("div",{style:{display:"flex",gap:"6px",marginTop:"10px"}});
+    acts.appendChild(h("button",{className:"btn-sm btn-dark",onClick:()=>{if(!(f.name||"").trim())return;const newSh={id:uid(),name:f.name,carrier:f.carrier||"",tracking:f.tracking||"",etaDate:f.etaDate||"",status:f.status||"pending",notes:f.notes||""};updJob(jid,{shipments:[...shipments,newSh]});S.addingShipment[jid]=false;delete S.shipmentForms[jid]}},"Add Shipment"));
+    acts.appendChild(h("button",{className:"btn-sm btn-ghost",onClick:()=>{S.addingShipment[jid]=false;delete S.shipmentForms[jid];render()}},"Cancel"));
+    form.appendChild(acts);container.appendChild(form);
+  }else{
+    container.appendChild(h("button",{style:{marginTop:"6px",width:"100%",padding:"7px",borderRadius:"7px",border:"1px dashed var(--line)",background:"transparent",fontSize:"12px",fontWeight:"700",color:"var(--ink3)",cursor:"pointer"},onClick:()=>{S.addingShipment[jid]=true;S.shipmentForms[jid]={name:"",carrier:"",tracking:"",etaDate:"",status:"pending",notes:""};render()}},"+ Add Shipment"));
+  }
+
+  return container;
+}
+
 function renderCard(job){
   const phase=PHASES.find(p=>p.id===job.phase)||PHASES[0];const u=urg(job.due,job.phase),uc=UC[u],lbl=urgLbl(job.due,job.phase);
   const isOpen=S.expanded[job.id];const tab=S.tabs[job.id]||"tasks";
-  const tasks=job.tasks||[],parts=job.parts||[],docs=job.docs||[];
+  const tasks=job.tasks||[],parts=job.parts||[],docs=job.docs||[],shipments=job.shipments||[];
   const tD=tasks.filter(t=>t.done).length,pW=parts.filter(p=>p.status!=="received").length,dO=docs.filter(d=>d.status!=="approved").length;
   const pL=parts.filter(p=>p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&dL(p.etaDate)<0).length;
-  const counts=[tasks.length>0&&tD+"/"+tasks.length+" tasks",pW>0&&pW+" parts waiting",dO>0&&dO+" docs open"].filter(Boolean);
+  const sIT=shipments.filter(s=>s.status==="in_transit").length;
+  const counts=[tasks.length>0&&tD+"/"+tasks.length+" tasks",pW>0&&pW+" parts waiting",sIT>0&&sIT+" shipment"+(sIT>1?"s":"")+" in transit",dO>0&&dO+" docs open"].filter(Boolean);
   const bc=u==="overdue"?"#EF4444":u==="hot"?"#F59E0B":phase.color;
 
   const card=h("div",{className:"jc fi",style:{borderLeft:"4px solid "+bc,boxShadow:u==="overdue"?"0 1px 8px rgba(220,38,38,.08)":"0 1px 3px rgba(0,0,0,.04)"}},
@@ -573,12 +700,12 @@ function renderCard(job){
   body.appendChild(pRow);
 
   const tabRow=h("div",{className:"tabs"});
-  [["tasks","Tasks ("+tasks.length+")"],["parts","Materials ("+parts.length+")"],["docs","Docs ("+docs.length+")"]].forEach(([id,l])=>{
+  [["tasks","Tasks ("+tasks.length+")"],["parts","Materials ("+parts.length+")"],["shipments","Shipments ("+shipments.length+")"],["docs","Docs ("+docs.length+")"]].forEach(([id,l])=>{
     tabRow.appendChild(h("button",{className:"tab"+(tab===id?" on":""),onClick:()=>{S.tabs[job.id]=id;render()}},l));
   });
   body.appendChild(tabRow);
   const tc=h("div",{style:{marginTop:"10px"}});
-  if(tab==="tasks")tc.appendChild(renderTasks(job));else if(tab==="parts")tc.appendChild(renderParts(job));else tc.appendChild(renderDocs(job));
+  if(tab==="tasks")tc.appendChild(renderTasks(job));else if(tab==="parts")tc.appendChild(renderParts(job));else if(tab==="shipments")tc.appendChild(renderShipments(job));else tc.appendChild(renderDocs(job));
   body.appendChild(tc);
   body.appendChild(h("div",{className:"acts-row"},
     h("button",{className:"btn-ghost",style:{flex:"1"},onClick:()=>set({editing:{...job}})},"✏️ Edit Job"),
@@ -929,6 +1056,26 @@ function render(){
   }
 }
 render();
+
+// Browser notifications — once per session, for overdue/hot jobs
+(function(){
+  if(!("Notification" in window))return;
+  if(sessionStorage.getItem("mas-notified"))return;
+  const active=S.jobs.filter(j=>j.phase!=="complete");
+  const overdue=active.filter(j=>urg(j.due,j.phase)==="overdue");
+  const hot=active.filter(j=>urg(j.due,j.phase)==="hot");
+  if(!overdue.length&&!hot.length)return;
+  const fire=()=>{
+    if(Notification.permission!=="granted")return;
+    const lines=[];
+    if(overdue.length)lines.push(overdue.length+" job"+(overdue.length>1?"s":"")+" overdue: "+overdue.map(j=>j.name).join(", "));
+    if(hot.length)lines.push(hot.length+" job"+(hot.length>1?"s":"")+" due soon");
+    new Notification("Job Manager",{body:lines.join("\n")});
+    sessionStorage.setItem("mas-notified","1");
+  };
+  if(Notification.permission==="granted"){fire()}
+  else if(Notification.permission==="default"){Notification.requestPermission().then(p=>{if(p==="granted")fire()})}
+})();
 
 </script>
 </body>

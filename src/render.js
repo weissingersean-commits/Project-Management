@@ -24,3 +24,23 @@ function render(){
   }
 }
 render();
+
+// Browser notifications — once per session, for overdue/hot jobs
+(function(){
+  if(!("Notification" in window))return;
+  if(sessionStorage.getItem("mas-notified"))return;
+  const active=S.jobs.filter(j=>j.phase!=="complete");
+  const overdue=active.filter(j=>urg(j.due,j.phase)==="overdue");
+  const hot=active.filter(j=>urg(j.due,j.phase)==="hot");
+  if(!overdue.length&&!hot.length)return;
+  const fire=()=>{
+    if(Notification.permission!=="granted")return;
+    const lines=[];
+    if(overdue.length)lines.push(overdue.length+" job"+(overdue.length>1?"s":"")+" overdue: "+overdue.map(j=>j.name).join(", "));
+    if(hot.length)lines.push(hot.length+" job"+(hot.length>1?"s":"")+" due soon");
+    new Notification("Job Manager",{body:lines.join("\n")});
+    sessionStorage.setItem("mas-notified","1");
+  };
+  if(Notification.permission==="granted"){fire()}
+  else if(Notification.permission==="default"){Notification.requestPermission().then(p=>{if(p==="granted")fire()})}
+})();

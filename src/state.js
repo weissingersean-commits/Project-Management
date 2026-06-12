@@ -48,6 +48,10 @@ let S={
   partForms:{},
   addingDoc:{},
   docForms:{},
+  addingShipment:{},
+  editingShipment:{},
+  shipmentForms:{},
+  showNotifications:false,,
 };
 
 function set(p){Object.assign(S,p);render()}

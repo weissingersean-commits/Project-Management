@@ -1,10 +1,11 @@
 function renderCard(job){
   const phase=PHASES.find(p=>p.id===job.phase)||PHASES[0];const u=urg(job.due,job.phase),uc=UC[u],lbl=urgLbl(job.due,job.phase);
   const isOpen=S.expanded[job.id];const tab=S.tabs[job.id]||"tasks";
-  const tasks=job.tasks||[],parts=job.parts||[],docs=job.docs||[];
+  const tasks=job.tasks||[],parts=job.parts||[],docs=job.docs||[],shipments=job.shipments||[];
   const tD=tasks.filter(t=>t.done).length,pW=parts.filter(p=>p.status!=="received").length,dO=docs.filter(d=>d.status!=="approved").length;
   const pL=parts.filter(p=>p.etaDate&&(p.status==="ordered"||p.status==="shipped")&&dL(p.etaDate)<0).length;
-  const counts=[tasks.length>0&&tD+"/"+tasks.length+" tasks",pW>0&&pW+" parts waiting",dO>0&&dO+" docs open"].filter(Boolean);
+  const sIT=shipments.filter(s=>s.status==="in_transit").length;
+  const counts=[tasks.length>0&&tD+"/"+tasks.length+" tasks",pW>0&&pW+" parts waiting",sIT>0&&sIT+" shipment"+(sIT>1?"s":"")+" in transit",dO>0&&dO+" docs open"].filter(Boolean);
   const bc=u==="overdue"?"#EF4444":u==="hot"?"#F59E0B":phase.color;
 
   const card=h("div",{className:"jc fi",style:{borderLeft:"4px solid "+bc,boxShadow:u==="overdue"?"0 1px 8px rgba(220,38,38,.08)":"0 1px 3px rgba(0,0,0,.04)"}},
@@ -48,12 +49,12 @@ function renderCard(job){
   body.appendChild(pRow);
 
   const tabRow=h("div",{className:"tabs"});
-  [["tasks","Tasks ("+tasks.length+")"],["parts","Materials ("+parts.length+")"],["docs","Docs ("+docs.length+")"]].forEach(([id,l])=>{
+  [["tasks","Tasks ("+tasks.length+")"],["parts","Materials ("+parts.length+")"],["shipments","Shipments ("+shipments.length+")"],["docs","Docs ("+docs.length+")"]].forEach(([id,l])=>{
     tabRow.appendChild(h("button",{className:"tab"+(tab===id?" on":""),onClick:()=>{S.tabs[job.id]=id;render()}},l));
   });
   body.appendChild(tabRow);
   const tc=h("div",{style:{marginTop:"10px"}});
-  if(tab==="tasks")tc.appendChild(renderTasks(job));else if(tab==="parts")tc.appendChild(renderParts(job));else tc.appendChild(renderDocs(job));
+  if(tab==="tasks")tc.appendChild(renderTasks(job));else if(tab==="parts")tc.appendChild(renderParts(job));else if(tab==="shipments")tc.appendChild(renderShipments(job));else tc.appendChild(renderDocs(job));
   body.appendChild(tc);
   body.appendChild(h("div",{className:"acts-row"},
     h("button",{className:"btn-ghost",style:{flex:"1"},onClick:()=>set({editing:{...job}})},"✏️ Edit Job"),

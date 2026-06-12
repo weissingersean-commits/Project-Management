@@ -16,6 +16,7 @@ $jsFiles = @(
     "$root\src\views\tab-tasks.js",
     "$root\src\views\tab-parts.js",
     "$root\src\views\tab-docs.js",
+    "$root\src\views\tab-shipments.js",
     "$root\src\views\view-jobs.js",
     "$root\src\views\view-materials.js",
     "$root\src\views\dashboard.js",
